@@ -5,13 +5,16 @@
 ## Overrides for generated resource names
 # See templates/_helpers.tpl
 # nameOverride:
-fullnameOverride: nginx-ingress
+# fullnameOverride:
 
 controller:
   name: controller
   image:
     registry: k8s.gcr.io
     image: ingress-nginx/controller
+    # for backwards compatibility consider setting the full image url via the repository value below
+    # use *either* current default registry/image or repository format or installing chart by providing the values.yaml will fail
+    # repository:
     tag: "v1.0.0"
     digest: sha256:0851b34f69f69352bf168e6ccf30e1e20714a264ab1ecd1933e4d8c0fc3215c6
     pullPolicy: IfNotPresent
@@ -45,6 +48,9 @@ controller:
 
   # Optionally customize the pod dnsConfig.
   dnsConfig: {}
+
+  # Optionally customize the pod hostname.
+  hostname: {}
 
   # Optionally change this to ClusterFirstWithHostNet in case you have 'hostNetwork: true'.
   # By default, while using host network, name resolution uses the host's DNS. If you wish nginx-controller
@@ -121,23 +127,23 @@ controller:
   ##
   scope:
     enabled: false
-    namespace: ""   # defaults to .Release.Namespace
+    namespace: ""   # defaults to $(POD_NAMESPACE)
 
   ## Allows customization of the configmap / nginx-configmap namespace
   ##
-  configMapNamespace: ""   # defaults to .Release.Namespace
+  configMapNamespace: ""   # defaults to $(POD_NAMESPACE)
 
   ## Allows customization of the tcp-services-configmap
   ##
   tcp:
-    configMapNamespace: ""   # defaults to .Release.Namespace
+    configMapNamespace: ""   # defaults to $(POD_NAMESPACE)
     ## Annotations to be added to the tcp config configmap
     annotations: {}
 
   ## Allows customization of the udp-services-configmap
   ##
   udp:
-    configMapNamespace: ""   # defaults to .Release.Namespace
+    configMapNamespace: ""   # defaults to $(POD_NAMESPACE)
     ## Annotations to be added to the udp config configmap
     annotations: {}
 
@@ -333,6 +339,18 @@ controller:
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 50
     behavior: {}
+      # scaleDown:
+      #   stabilizationWindowSeconds: 300
+      #  policies:
+      #   - type: Pods
+      #     value: 1
+      #     periodSeconds: 180
+      # scaleUp:
+      #   stabilizationWindowSeconds: 300
+      #   policies:
+      #   - type: Pods
+      #     value: 2
+      #     periodSeconds: 60
 
   autoscalingTemplate: []
   # Custom or additional autoscaling metrics
@@ -415,7 +433,7 @@ controller:
     ## Set external traffic policy to: "Local" to preserve source IP on
     ## providers supporting it
     ## Ref: https://kubernetes.io/docs/tutorials/services/source-ip/#source-ip-for-services-with-typeloadbalancer
-    externalTrafficPolicy: "Local"
+    # externalTrafficPolicy: ""
 
     # Must be either "None" or "ClientIP" if set. Kubernetes will default to "None".
     # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
@@ -529,6 +547,12 @@ controller:
 
     createSecretJob:
       resources: {}
+        # limits:
+        #   cpu: 10m
+        #   memory: 20Mi
+        # requests:
+        #   cpu: 10m
+        #   memory: 20Mi
 
     patchWebhookJob:
       resources: {}
@@ -538,6 +562,9 @@ controller:
       image:
         registry: k8s.gcr.io
         image: ingress-nginx/kube-webhook-certgen
+        # for backwards compatibility consider setting the full image url via the repository value below
+        # use *either* current default registry/image or repository format or installing chart by providing the values.yaml will fail
+        # repository:
         tag: v1.0
         digest: sha256:f3b6b39a6062328c095337b4cadcefd1612348fdd5190b1dcbcb9b9e90bd8068
         pullPolicy: IfNotPresent
@@ -545,7 +572,8 @@ controller:
       ##
       priorityClassName: ""
       podAnnotations: {}
-      nodeSelector: {}
+      nodeSelector:
+        kubernetes.io/os: linux
       tolerations: []
       runAsUser: 2000
 
@@ -657,6 +685,9 @@ defaultBackend:
   image:
     registry: k8s.gcr.io
     image: defaultbackend-amd64
+    # for backwards compatibility consider setting the full image url via the repository value below
+    # use *either* current default registry/image or repository format or installing chart by providing the values.yaml will fail
+    # repository:
     tag: "1.5"
     pullPolicy: IfNotPresent
     # nobody user -> uid 65534
@@ -719,7 +750,8 @@ defaultBackend:
   ## Node labels for default backend pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
-  nodeSelector: {}
+  nodeSelector:
+    kubernetes.io/os: linux
 
   ## Annotations to be added to default backend pods
   ##
