@@ -137,10 +137,10 @@ variable "enable_public_endpoint" {
 variable "namespaces" {
   description = "A list of namespaces to be created in kubernetes. A map of secrets can be included e.g. {\"mysql\": {\"username\": \"johndoe\", \"password\": \"password123\"}}"
   type = list(object({
-    name         = string
-    labels       = map(string)
-    annotations  = map(string)
-    secrets      = map(map(string))
+    name        = string
+    labels      = map(string)
+    annotations = map(string)
+    secrets     = map(map(string))
   }))
   default = []
 }
@@ -272,7 +272,7 @@ variable "node_pools" {
   disk_type: Type of the disk for each node. Acceptable values are "pd-standard", "pd-balanced" or
   "pd-ssd". "pd-standard" is default. "pd-ssd" is costly.
   
-  disk_size_gb: Size of the disk on each node in Giga Bytes.
+  disk_size_gb: Size of the disk on each node in Giga Bytes. Minimum 12 GB.
   
   preemptible: Preemptible nodes last a maximum of 24 hours and helps reduce cost while providing no
   availability guarantee. It can be used for non-production clusters to help save cost. Not recommended
@@ -306,6 +306,13 @@ variable "node_pools" {
   gpu_type: Compute Engine provides graphics processing units (GPUs) that you can add to your virtual machine (VM) instances. You can use these GPUs to accelerate specific workloads on your VMs such as machine learning and data processing.
   See https://cloud.google.com/compute/docs/gpus & https://cloud.google.com/compute/docs/machine-resource#gpus
 
+  kubelet_config: (Optional) Kubelet configuration parameters. Can be null (no config) or a map with any of the following keys:
+  - cpu_cfs_quota (bool): Enable CPU CFS quota enforcement for containers that specify CPU limits
+  - cpu_manager_policy (string): CPU management policy. Defaults to "none". Other values: "static"
+  - pod_pids_limit (number): Maximum number of process IDs that can be run in a pod
+  Additional parameters may be passed through for future Google provider compatibility.
+  When null, no kubelet configuration is applied. When provided, cpu_manager_policy defaults to "none" if not specified.
+
   node_metadatas: Map of Compute Engine instance metadata (key-values) to be applied to all nodes in a nodepool. Instance metadata can be used to configure the behavior of the nodes / VM instances.
 
   network_config: (Optional) Specifies the network configuration for the pool. Use this if you want to override the cluster’s default network configuration.
@@ -333,7 +340,7 @@ variable "node_pools" {
     enable_gke_metadata_server = bool
     node_metadatas             = map(string)
     gpu_type                   = map(string)
-    kubelet_config             = object({ cpu_cfs_quota = bool, cpu_manager_policy = string, pod_pids_limit = number })
+    kubelet_config             = any
     network_config             = object({ pod_range = string })
     oauth_scopes               = list(string)
   }))
