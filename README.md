@@ -35,8 +35,9 @@ The parameters are compatible with Google provider versions 4.55.0 to 5.43.1.
 
 ### Configuration Block Defaults
 - `kubelet_config = null`: No kubelet configuration is applied (uses GKE defaults)
-- `kubelet_config = {}`: Creates kubelet config block with `cpu_manager_policy = "none"`
-- All parameters are optional except `cpu_manager_policy` which defaults to "none" when kubelet_config block is created
+- `kubelet_config = {}`: Creates kubelet config block with `cpu_manager_policy = ""` (empty string)
+- All parameters are optional except `cpu_manager_policy` which defaults to empty string when kubelet_config block is created
+- Empty string for `cpu_manager_policy` prevents permadrift (a bug fixed in Google provider v6.4.0)
 
 ### Usage Example
 ```terraform

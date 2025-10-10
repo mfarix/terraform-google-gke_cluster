@@ -269,14 +269,16 @@ resource "google_container_node_pool" "node_pools" {
     }
     dynamic "kubelet_config" {
       # Kubelet configuration supported attributes available in provider 4.85.0
-      # https://registry.terraform.io/providers/hashicorp/google/4.85.0/docs/resources/container_cluster#nested_kubelet_config
+      # See https://registry.terraform.io/providers/hashicorp/google/4.85.0/docs/resources/container_cluster#nested_kubelet_config
+      # See https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options
       for_each = each.value.kubelet_config == null ? [] : [each.value.kubelet_config]
       iterator = kubelet_config
       content {
-        cpu_manager_policy   = coalesce(lookup(kubelet_config.value, "cpu_manager_policy", null), "none") # string
-        cpu_cfs_quota        = lookup(kubelet_config.value, "cpu_cfs_quota", null)                        # boolean
-        cpu_cfs_quota_period = lookup(kubelet_config.value, "cpu_cfs_quota_period", null)                 # string
-        pod_pids_limit       = lookup(kubelet_config.value, "pod_pids_limit", null)                       # integer
+        # cpu_manager_policy must be set when kubelet_config is, but causes permadrift unless set to undocumented empty value. Bug fixed in Google provider v6.4.0.
+        cpu_manager_policy   = lookup(kubelet_config.value, "cpu_manager_policy") != null ? lookup(kubelet_config.value, "cpu_manager_policy") : ""
+        cpu_cfs_quota        = lookup(kubelet_config.value, "cpu_cfs_quota", null)
+        cpu_cfs_quota_period = lookup(kubelet_config.value, "cpu_cfs_quota_period", null)
+        pod_pids_limit       = lookup(kubelet_config.value, "pod_pids_limit", null)
       }
     }
   }
