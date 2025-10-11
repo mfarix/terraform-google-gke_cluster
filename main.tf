@@ -229,7 +229,9 @@ resource "google_container_node_pool" "node_pools" {
     preemptible  = each.value.preemptible
     spot         = each.value.spot
     # Kubernetes node labels that can be used in node selectors to control how workloads are scheduled to nodes
-    labels = each.value.node_labels
+    # Predefined kubernetes labels are set to address a bug in provider when removing all labels. Bug fixed in Google provider 6.18.1.
+    # https://github.com/hashicorp/terraform-provider-google/issues/15848#issuecomment-2669370077
+    labels = merge(local.predefined_node_resource_labels, each.value.node_labels)
     # Resource labels are used to manage resources in GCP organization and to breakdown resources.
     # GKE automatically adds several resource labels to node pools. They should not be modified or deleted.
     # see https://cloud.google.com/kubernetes-engine/docs/how-to/creating-managing-labels#automatically-applied-labels

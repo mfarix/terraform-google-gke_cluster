@@ -306,12 +306,12 @@ variable "node_pools" {
   gpu_type: Compute Engine provides graphics processing units (GPUs) that you can add to your virtual machine (VM) instances. You can use these GPUs to accelerate specific workloads on your VMs such as machine learning and data processing.
   See https://cloud.google.com/compute/docs/gpus & https://cloud.google.com/compute/docs/machine-resource#gpus
 
-  kubelet_config: (Optional) Kubelet configuration parameters. Can be null (no config) or a map with any of the following keys:
-  - cpu_cfs_quota (bool): Enable CPU CFS quota enforcement for containers that specify CPU limits
-  - cpu_manager_policy (string): CPU management policy. Defaults to "none". Other values: "static"
-  - pod_pids_limit (number): Maximum number of process IDs that can be run in a pod
-  Additional parameters may be passed through for future Google provider compatibility.
-  When null, no kubelet configuration is applied. When provided, cpu_manager_policy defaults to "none" if not specified.
+  kubelet_config: (Optional) Kubelet configuration parameters. Can be `null` (no config) or an empty map `{}` (creates block with `cpu_manager_policy = ""`) or a map with the following supported parameters for provider 4.55.0 to 5.43.1:
+  - cpu_manager_policy (string): CPU management policy. Values: "none", "static".
+  - cpu_cfs_quota (bool): Enable CPU CFS quota enforcement for containers that specify CPU limits.
+  - cpu_cfs_quota_period (string): CFS quota period. Format: "1ms" to "1000ms".
+  - pod_pids_limit (number): Maximum PIDs per pod. Range: 1024-4194304.
+  See https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options
 
   node_metadatas: Map of Compute Engine instance metadata (key-values) to be applied to all nodes in a nodepool. Instance metadata can be used to configure the behavior of the nodes / VM instances.
 
